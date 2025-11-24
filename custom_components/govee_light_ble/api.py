@@ -11,7 +11,9 @@ from .api_utils import (
     LedPacketCmd,
     LedColorType,
     LedPacket,
-    GoveeUtils
+    GoveeUtils,
+    effect_name_to_code,
+    effect_code_to_name
 )
 
 import logging
@@ -21,6 +23,7 @@ class GoveeAPI:
     state: bool | None = None
     brightness: int | None = None
     color: tuple[int, ...] | None = None
+    effect: str | None = None
 
     def __init__(self, ble_device: BLEDevice, update_callback, segmented: bool = False):
         self._conn = None
@@ -156,3 +159,17 @@ class GoveeAPI:
             await self._preparePacket(LedPacketCmd.COLOR, [LedColorType.SINGLE, red, green, blue])
             await self._preparePacket(LedPacketCmd.COLOR, [LedColorType.LEGACY, red, green, blue])
         await self.requestColorBuffered()
+        # Clear effect when setting color
+        self.effect = None
+
+    async def setEffectBuffered(self, effect_name: str):
+        """ adds the effect to the transmit buffer """
+        effect_code = effect_name_to_code(effect_name)
+        if effect_code is None:
+            _LOGGER.warning(f"Unknown effect: {effect_name}")
+            return None
+        if self.effect == effect_name:
+            return None #nothing to do
+        # Send effect command using COLOR command with EFFECT mode
+        await self._preparePacket(LedPacketCmd.COLOR, [LedColorType.EFFECT, effect_code])
+        self.effect = effect_name
