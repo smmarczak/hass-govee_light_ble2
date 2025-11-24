@@ -4,11 +4,19 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.components.light import (ColorMode, LightEntity, ATTR_BRIGHTNESS, ATTR_RGB_COLOR)
+from homeassistant.components.light import (
+    ColorMode,
+    LightEntity,
+    LightEntityFeature,
+    ATTR_BRIGHTNESS,
+    ATTR_RGB_COLOR,
+    ATTR_EFFECT,
+)
 from homeassistant.const import CONF_ADDRESS, CONF_NAME
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .api import GoveeAPI
+from .api_utils import EFFECT_LIST
 from .const import DOMAIN
 from .coordinator import GoveeCoordinator
 
@@ -38,6 +46,8 @@ class GoveeBluetoothLight(CoordinatorEntity, LightEntity):
 
     _attr_supported_color_modes = {ColorMode.RGB}
     _attr_color_mode = ColorMode.RGB
+    _attr_supported_features = LightEntityFeature.EFFECT
+    _attr_effect_list = EFFECT_LIST
 
     def __init__(self, coordinator: GoveeCoordinator):
         """Initialize."""
@@ -71,6 +81,11 @@ class GoveeBluetoothLight(CoordinatorEntity, LightEntity):
         """Return the current rgw color."""
         return self.coordinator.data.color
 
+    @property
+    def effect(self) -> str | None:
+        """Return the current effect."""
+        return self.coordinator.data.effect
+
     async def async_turn_on(self, **kwargs):
         """Turn device on."""
         await self.coordinator.setStateBuffered(True)
@@ -83,7 +98,11 @@ class GoveeBluetoothLight(CoordinatorEntity, LightEntity):
         if ATTR_RGB_COLOR in kwargs:
             red, green, blue = kwargs.get(ATTR_RGB_COLOR)
             await self.coordinator.setColorBuffered(red, green, blue)
-        
+
+        if ATTR_EFFECT in kwargs:
+            effect = kwargs.get(ATTR_EFFECT)
+            await self.coordinator.setEffectBuffered(effect)
+
         await self.coordinator.sendPacketBuffer()
 
     

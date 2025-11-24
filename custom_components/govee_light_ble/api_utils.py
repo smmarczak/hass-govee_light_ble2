@@ -15,6 +15,54 @@ class LedColorType(IntEnum):
     SEGMENTS    = 0x15
     SINGLE      = 0x02
     LEGACY      = 0x0D
+    EFFECT      = 0x04  # Scene/Effect mode
+
+class LedEffect(IntEnum):
+    """Govee light effect codes."""
+    SUNRISE     = 0x00
+    SUNSET      = 0x01
+    MOVIE       = 0x02
+    DATING      = 0x03
+    ROMANTIC    = 0x04
+    BLINKING    = 0x05
+    CANDLELIGHT = 0x06
+    SNOWFLAKE   = 0x07
+    ENERGETIC   = 0x08
+    SPECTRUM    = 0x09
+    RAINBOW     = 0x0a
+    BREATHING   = 0x0b
+    CROSSING    = 0x0c
+
+# Effect names for Home Assistant
+EFFECT_LIST = [
+    "Sunrise",
+    "Sunset",
+    "Movie",
+    "Dating",
+    "Romantic",
+    "Blinking",
+    "Candlelight",
+    "Snowflake",
+    "Energetic",
+    "Spectrum",
+    "Rainbow",
+    "Breathing",
+    "Crossing",
+]
+
+def effect_name_to_code(name: str) -> int | None:
+    """Convert effect name to code."""
+    try:
+        index = EFFECT_LIST.index(name)
+        return index
+    except ValueError:
+        return None
+
+def effect_code_to_name(code: int) -> str | None:
+    """Convert effect code to name."""
+    if 0 <= code < len(EFFECT_LIST):
+        return EFFECT_LIST[code]
+    return None
 
 @dataclass
 class LedPacket:
