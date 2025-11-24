@@ -173,3 +173,5 @@ class GoveeAPI:
         # Send effect command using COLOR command with EFFECT mode
         await self._preparePacket(LedPacketCmd.COLOR, [LedColorType.EFFECT, effect_code])
         self.effect = effect_name
+        # Request state to keep connection healthy
+        await self.requestStateBuffered()
